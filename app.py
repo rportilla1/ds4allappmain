@@ -10,7 +10,7 @@ import plotly.express as px
 from sqlalchemy import create_engine
 import psycopg2 as ps
 import pandas as pd 
-import pyodbc
+#import pyodbc
 
 
 # Parameters of database :
