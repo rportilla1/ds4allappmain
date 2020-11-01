@@ -1,5 +1,5 @@
 import dash
-#from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State
 from datetime import date
 import dash_html_components as html
 import dash_core_components as dcc
@@ -7,9 +7,10 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import dash_table
 import plotly.express as px
-#from sqlalchemy import create_engine
+from sqlalchemy import create_engine
 import psycopg2 as ps
-#import pandas as pd
+import pandas as pd
+import plotly.graph_objects as go
 #import pyodbc
 
 
@@ -37,7 +38,7 @@ except ps.OperationalError as e:
 else:
     print('Connected!')
 
-SQL_Query = pd.read_sql('SELECT * FROM eventosmodelo LIMIT 100', conn)
+SQL_Query = pd.read_sql('SELECT * FROM eventosmodelo LIMIT 1000', conn)
 # charts
 scatter = px.scatter(SQL_Query, x='longitud', y='latitud')
 
@@ -164,7 +165,7 @@ EQUITEAM = html.Div([html.A(children=[
 graph1 = dcc.Graph(figure=scatter, id='scatter')
 graph2 = dash_table.DataTable(id='table',
                      columns =[{'name':i, 'id':i} for i in SQL_Query.columns],
-                     data=SQL_Query.head(5).to_dict('records'))
+                     data=SQL_Query.head(10).to_dict('records'))
 graph3 = dcc.Graph(
         id='example-graph_2',
         figure={
@@ -183,11 +184,69 @@ graph3 = dcc.Graph(
         }
     )
 
+## KPIs
+graph4 = dcc.Graph(
+
+        figure = go.Figure([go.Indicator(
+                                        mode = "number",
+                                        value = len(SQL_Query['idruta'].unique()),
+                                        title = {"text": "# de Rutas:"},
+                                        domain = {'x': [0, 0.5], 'y': [0.5, 1]}
+                                        #delta = {'reference': 400, 'relative': True, 'position' : "top"}
+                                        ),
+                                                
+                                        go.Indicator(
+                                        #mode = "number+delta",
+                                        mode = "number",
+                                        value = len(SQL_Query['idvehiculo'].unique()),
+                                        title = {"text": "Vehiculos:"},
+                                        #delta = {'reference': 400, 'relative': True},
+                                        domain = {'x': [0.5, 1], 'y': [0, 0.5]}
+                                        ),
+
+                                        go.Indicator(
+                                        #mode = "number+delta",
+                                        mode = "number",
+                                        value = len(SQL_Query['idempresa'].unique()),
+                                        title = {"text": "Empresas:"},
+                                        #delta = {'reference': 400, 'relative': True},
+                                        domain = {'x': [0, 0.5], 'y': [0, 0.5]}
+                                        ),
+
+                                        go.Indicator(
+                                        #mode = "number+delta",
+                                        mode = "number",
+                                        value = len(SQL_Query['secuenciarecorrido'].unique()),
+                                        title = {"text": "Despachos:"},
+                                        #delta = {'reference': 400, 'relative': True},
+                                        domain = {'x': [0.5, 1], 'y': [0.5, 1]})
+                                        ]),
+            
+            id='KPI1')
+
+
+
+
+
 content_first_row = dbc.Row(dbc.Col(''))
 
 content_second_row = dbc.Row(dbc.Col(intro,md=12))
 
-content_third_row = dbc.Row([
+content_third_row = dbc.Row(
+    [
+        dbc.Col(graph4
+        )
+    ]
+)
+
+content_fourth_row = dbc.Row(
+    [
+        dbc.Col(graph2
+        )
+    ]
+)
+
+content_seventh_row = dbc.Row([
 
     dbc.Col(
     dbc.Card(
@@ -246,7 +305,7 @@ content_third_row = dbc.Row([
     )
 ])
 
-content_fourth_row = dbc.Row(
+content_eight_row = dbc.Row(
     [
 
         dbc.Col(
@@ -263,8 +322,8 @@ content_fourth_row = dbc.Row(
 
 content_fifth_row = dbc.Row(
     [
-        dbc.Col(
-            dcc.Graph(id='graph_4'), md=12,
+        dbc.Col(graph1
+#            dcc.Graph(id='graph_4'), md=12,
         )
     ]
 )
